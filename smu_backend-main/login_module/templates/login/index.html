@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="#">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class = "kakao_login">
+        <a href = "https://kauth.kakao.com/oauth/authorize?client_id=debb9ef2afa1c404a8b14a3788d996a5&redirect_uri=http://localhost:8000/oauth&response_type=code">
+            <img src = "{% static 'image/kakao_login_large_wide.png' %}" width = "500">
+        </a>
+    </div>
+</body>
+</html>
+
