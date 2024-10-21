@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     ## 박정진 수정 
     "login_module",
     "board",
+    ## 이민정 수정
+    "chat",
+    "daphne",
+    "channels",
     # 설치한 라이브러리
     "rest_framework",
     "corsheaders",
@@ -79,6 +83,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "backend.wsgi.application"
+## 이민정 수정
+ASGI_APPLICATION = 'backend.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
