@@ -1,8 +1,9 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import ChatRoom, ChatMessage
 
-User = settings.AUTH_USER_MODEL  # AUTH_USER_MODEL 참조
+User = get_user_model()  # 사용자 모델 가져오기
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     participants = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)

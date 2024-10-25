@@ -1,8 +1,9 @@
 from django.urls import path
-from . import views
+from .views import SendMessageAPI, CreateChatRoomAPI, ChatRoomAPI, ChatMessageView
 
 urlpatterns = [
-    path('chat/create/<str:recipient_email>/', views.CreateChatRoomAPI.as_view(), name='create_chat_room'),
-    path('chat/room/<int:room_id>/', views.ChatRoomAPI.as_view(), name='get_chat_room'),
-    path('chat/message/<int:room_id>/', views.SendMessageAPI.as_view(), name='send_message'),
+    path('send/<str:username>/', SendMessageAPI.as_view(), name='send_message'),  # 'chat/' 생략
+    path('create/<str:username>/', CreateChatRoomAPI.as_view(), name='create_chat_room'),
+    path('<int:room_id>/', ChatRoomAPI.as_view(), name='chat_room'),
+    path('messages/<int:room_id>/', ChatMessageView.as_view(), name='chat_messages'),
 ]

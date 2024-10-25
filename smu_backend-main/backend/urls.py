@@ -5,5 +5,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('login_module.urls')),
     path('', include('board.urls')),
-
+    path('chat/', include('chat.urls')),
 ]

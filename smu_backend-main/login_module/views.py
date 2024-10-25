@@ -37,11 +37,11 @@ class KakaoCallback(APIView):
         KAKAO_USER_API = "https://kapi.kakao.com/v2/user/me"
     
         data = {
-          "grant_type": "authorization_code",
-          "client_id": CLIENT_ID,
-          "redirect_uri": REDIRECT_URI,
-          "code": request.data.get('AUTHORIZE_CODE'),
-          "client_secret": CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "client_id": CLIENT_ID,
+            "redirect_uri": REDIRECT_URI,
+            "code": request.data.get('AUTHORIZE_CODE'),
+            "client_secret": CLIENT_SECRET,
         }
 
         token = requests.post(token_url, data=data).json()
@@ -58,12 +58,12 @@ class KakaoCallback(APIView):
             "birthyear": kakao_account.get("birthyear", None),
             "birthday": kakao_account.get("birthday", None),
             "gender": kakao_account.get("gender", None)
-        }  
-        
+        }
+
         email = user_data.get('email')
         user = User.objects.filter(email=email).first()
 
-        #데이터베이스에 email이 존재할 때
+        # 데이터베이스에 email이 존재할 때
         if user:
             serializer = User_Serializer(user, data=user_data)
             if serializer.is_valid():
@@ -77,13 +77,13 @@ class KakaoCallback(APIView):
                     {
                         "access": access_token,
                         "refresh": refresh_token,
+                        "email": email  # 이메일을 추가로 반환
                     },
                     status=status.HTTP_200_OK,
                 )
-
                 return res
           
-        #데이터베이스에 email이 존재하지 않을 때
+        # 데이터베이스에 email이 존재하지 않을 때
         else:
             serializer = User_Serializer(data = user_data)
             if serializer.is_valid():
@@ -97,6 +97,7 @@ class KakaoCallback(APIView):
                         {
                             "access": access_token,
                             "refresh": refresh_token,
+                            "email": email  # 이메일을 추가로 반환
                         },
                         status=status.HTTP_200_OK,
                     )

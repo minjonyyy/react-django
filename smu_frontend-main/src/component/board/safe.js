@@ -259,14 +259,18 @@ const Blank = styled.div`
 
 const SafePage = ({ title, content, price, region, address, size, direction, availability, floor, apart, images, authorEmail }) => {
     const navigate = useNavigate();
-    console.log("authorEmail:", authorEmail);
+
     const navigateToChatRoom = () => {
-        if (authorEmail) {
-            navigate(`/chat/${authorEmail}`); // authorEmail로 채팅방으로 이동
+        const username = authorEmail.split('@')[0];
+        console.log("username:", username);
+
+        if (username) {
+            navigate(`/chat/${username}/`); // useNavigate 사용
         } else {
-            console.error("authorEmail is undefined or empty");
+            console.error("username이 정의되지 않았습니다. authorEmail:", authorEmail);
         }
     };
+    
     
       
     return (
