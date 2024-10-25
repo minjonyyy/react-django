@@ -10,7 +10,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatRoom
-        fields = ['id', 'participants', 'created_at']
+        fields = ['id', 'participants']  # 'created_at' 필드 제거
 
 class ChatMessageSerializer(serializers.ModelSerializer):
     sender = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())

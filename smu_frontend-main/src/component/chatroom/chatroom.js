@@ -66,62 +66,119 @@ const ChatRoom = () => {
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
+  const [roomId, setRoomId] = useState(null);  // room_id 상태 추가
 
   const senderEmail = localStorage.getItem('userEmail'); // 예시로 localStorage에서 이메일 가져오기
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${username}/`); // username으로 웹소켓 연결
-    setSocket(ws);
-
-    ws.onmessage = (event) => {
+    const fetchRoomId = async () => {
+      const token = localStorage.getItem('access_token');
       try {
-        const data = JSON.parse(event.data);
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { sender: data.sender_email, message: data.message }
-        ]);
+        const response = await axios.post(
+          `http://127.0.0.1:8000/chat/create/${username}/`,  // 경로 수정: chat/ 추가
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setRoomId(response.data.id);  // room_id 설정
       } catch (error) {
-        console.error("메시지 수신 오류:", error); // JSON 파싱 오류 처리
+        console.error("채팅방 생성 오류:", error);
       }
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket closed');
-    };
-
-    return () => {
-      ws.close();
-    };
+    fetchRoomId();
   }, [username]);
 
+  useEffect(() => {
+    if (roomId) {
+        const ws = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${roomId}/`);  // room_id로 웹소켓 연결
+        setSocket(ws);
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                // 중복 메시지 필터링: 동일한 메시지가 추가되지 않도록 함
+                setMessages((prevMessages) => {
+                    const isDuplicate = prevMessages.some(
+                        (msg) => msg.sender === data.sender_email && msg.message === data.message
+                    );
+                    if (!isDuplicate) {
+                        return [
+                            ...prevMessages,
+                            { sender: data.sender_email, message: data.message }
+                        ];
+                    }
+                    return prevMessages;  // 중복인 경우 이전 상태 유지
+                });
+            } catch (error) {
+                console.error("메시지 수신 오류:", error); // JSON 파싱 오류 처리
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket closed');
+        };
+
+        return () => {
+            ws.close();
+        };
+    }
+}, [roomId]);
+
+  // 메시지 전송 함수
   const sendMessage = async () => {
-    if (messageInput.trim() === '') return;
+    if (messageInput.trim() === '' || !roomId) return;  // roomId 확인
 
     const token = localStorage.getItem('access_token');
-    console.log("현재 사용자:", senderEmail);
-    console.log("전송할 username:", username);
-    console.log("전송할 URL:", `http://127.0.0.1:8000/chat/send/${username}/`);  // URL 로그 확인
 
     try {
-        const response = await axios.post(
-            `http://127.0.0.1:8000/chat/send/${username}/`,
-            { message: messageInput },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        console.log("메시지 전송 성공:", response.data);
-        if (socket) {
-            socket.send(JSON.stringify({ message: messageInput, sender_email: senderEmail }));
+      await axios.post(
+        `http://127.0.0.1:8000/chat/send/${username}/`,  // chat/ 추가
+        { message: messageInput },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
         }
-    } catch (error) {
-        console.error("메시지 전송 오류:", error.response ? error.response.data : error.message); // 오류 로그 확인
-    }
-    setMessageInput('');
-};
+      );
 
+      if (socket) {
+        socket.send(JSON.stringify({ message: messageInput, sender_email: senderEmail }));
+      }
+    } catch (error) {
+      console.error("메시지 전송 오류:", error);
+    }
+
+    setMessageInput('');
+  };
+
+  // 기존 메시지 불러오기
+  const fetchMessages = async () => {
+    if (!roomId) return;  // roomId 확인
+
+    const token = localStorage.getItem('access_token');
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/chat/messages/${roomId}/`,  // chat/ 추가
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
+      setMessages(response.data);
+    } catch (error) {
+      console.error("기존 메시지 불러오기 오류:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, [roomId]);  // roomId가 설정될 때마다 메시지 불러오기
 
   return (
     <ChatContainer>
-      <h2>채팅방</h2>
+      <h2>{username}님과의 채팅방</h2>
       <MessageList>
         {messages.map((msg, index) => (
           <Message key={index}>
